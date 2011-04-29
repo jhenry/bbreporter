@@ -2,6 +2,8 @@ from bbreporting import BbReporting
 import unittest
 import py
 import pytest_skipping
+#from mock import Mock
+import mox
 import re
 import time
 
@@ -10,13 +12,34 @@ class BlackboardReports(unittest.TestCase):
   aValidTerm = '200909'
   anInvalidTerm = '20090'
 
+  def setUp(self):
+    self.mox = mox.Mox()
+
+  def tearDown(self):
+    self.mox.UnsetStubs()
+
   def testLoadConnectionConfigs(self):
     """should successfully import configurations"""
     self.pending() 
 
-  def testConnectToDB(self):
+  def testGetOracleConnectToDB(self):
     """successfully connect to the database"""
     self.pending() 
+    # mockConnection = Mock()
+    # mockDB = Mock( {"connect" : mockConnection } )
+    # bbreporting = BbReporting()
+    # bbreporting.getOracleConnection()
+    
+    # mock cx_Oracle.connect
+    # cx_Oracle.should recieve connect with ()?
+
+  def testSendQuery(self):
+    """should send query to database and return result"""
+    self.pending()
+    # mockCursor = Mock()
+    # mockDB = Mock( { "cursor" : mockCursor } )  
+    # bbreporting = BbReporting()
+    #bbreporting.getOracleConnection()
 
   def testBuildQueryForExpoToolByTerm(self):
     """should create a query to count deployments of LO expo tool"""
@@ -59,21 +82,38 @@ class BlackboardReports(unittest.TestCase):
  
   def testCountStudentsByTerm(self):
     """should return a number greater than or equal to 0"""
+    self.pending() 
     bbreporting = BbReporting()
     students = bbreporting.countStudentsByTerm(self.aValidTerm)
     self.assertTrue(students >= 0)
   
   def testCountInstructorsByTerm(self):
     """should return a number greater than or equal to 0"""
+    self.pending() 
     bbreporting = BbReporting()
     instructors = bbreporting.countInstructorsByTerm(self.aValidTerm)
     self.assertTrue(instructors >= 0)
  
   def testCountCoursesByTerm(self):
     """should return a number greater than or equal to 0"""
+
+    # setup the test
+    expected_course_count = 1245 
     bbreporting = BbReporting()
-    courses = bbreporting.countCoursesByTerm(self.aValidTerm)
-    self.assertTrue(courses >= 0)
+    query = bbreporting.buildCourseQueryByTerm(self.aValidTerm)
+  
+    bbreporting_mock = self.mox.CreateMock(BbReporting)
+    bbreporting_mock.buildCourseQueryByTerm(self.aValidTerm).AndReturn(query)
+    bbreporting_mock.sendQuery(query).AndReturn(expected_course_count)
+    
+    # check that the method called the right collaborators
+    self.mox.ReplayAll()
+    returned_query = bbreporting_mock.buildCourseQueryByTerm(self.aValidTerm)
+    returned_count = bbreporting_mock.sendQuery(returned_query)
+    
+    self.mox.VerifyAll()
+    # make sure the method returns something sane
+    self.assertEqual(expected_course_count, returned_count)
   
   def testBuildReportPathByTerm(self):
     """should return a reporting path based on term, report type, and a timestamp"""
@@ -86,6 +126,7 @@ class BlackboardReports(unittest.TestCase):
 
   def testBuildReport(self):
     """should return a report string consisting of a term-based path, a count, and a timestamp"""
+    self.pending() 
     bbreporting = BbReporting()
     reportMethodName = "countCoursesByTerm"
     reportLabel = "courses"

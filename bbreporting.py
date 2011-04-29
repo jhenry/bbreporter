@@ -1,8 +1,8 @@
 import re
 import time
-import dbconfig
+from dbconfig import DBConfig
 import sys
-#import cx_Oracle
+import cx_Oracle
 from socket import socket
 
 class BbReporting:
@@ -39,18 +39,21 @@ class BbReporting:
     instructors = 0
     query = self.buildQueryByTermAndRole(term, "P")
     # connect to db and run query
+    instructors = self.sendQuery(query)
     return instructors
 
   def countStudentsByTerm(self, term):
     students = 0
     query = self.buildQueryByTermAndRole(term, "S")
     # connect to db and run query
+    students = self.sendQuery(query)
     return students
 
   def countCoursesByTerm(self, term):
     courses = 0
-    query =self.buildCourseQueryByTerm(term)
+    query = self.buildCourseQueryByTerm(term)
     # connect to db and run query
+    courses = self.sendQuery(query)
     return courses
 
   def buildReportPathByTerm(self, term, reportType):
@@ -60,32 +63,19 @@ class BbReporting:
   def buildReportByTermAndType(self, term, reportLabel, reportMethod, stamp=""):
     if stamp == "":
         stamp = int( time.time() )
-    
-    print 'locals: %s' % locals()
     path = self.buildReportPathByTerm(term, reportLabel)
-    #result = locals()[reportMethod](term)
     result = getattr(self, str(reportMethod))(term)
-    # if reportType == "courses":
-    #   result = countCoursesByTerm(term)
-    # elif reportType == "instructors":
-    #   result = countInstructorsByTerm(term)
-    # elif reportType == "students":
-    #   result = countStudentsByTerm(term)
-    
     report =  path + " "+ str( result ) + " " + str( stamp )
-    
     return report
 
-  def runReports():
+  def runReports(self):
     reports = []
-    
     reports.append(buildReportByTermAndType("200909", "courses"))
     reports.append(buildReportByTermAndType("200909", "students"))
     reports.append(buildReportByTermAndType("200909", "instructors"))
-    
     return reports
 
-  def sendReports(verbose = False, delay = 60):
+  def sendReports(self, verbose = False, delay = 60):
     carbon_socket = getCarbonConnection() 
     while True:
       full_report = '\n'.join(runReports()) + '\n' #all lines must end
@@ -94,12 +84,12 @@ class BbReporting:
       carbon_socket.sendall(full_report)
       time.sleep(delay)
 
-  def printReports(reports):
+  def printReports(self, reports):
       print "\nSending reports\n"
       print '-------------------'
       print reports
 
-  def getCarbonConnection():
+  def getCarbonConnection(self):
     sock = socket()
     try:
       sock.connect( (CARBON_SERVER,CARBON_PORT) )
@@ -108,12 +98,13 @@ class BbReporting:
       sys.exit(1)
     return sock
 
-  def getOracleConnection():
+  def getOracleConnection(self):
+    dbconfig = DBConfig()
     connection_string = DBConfig.USER + "/" + DBConfig.PASS + "@" + DBConfig.DATABASE
     return cx_Oracle.connect(connection_string)
 
-  def sendQuery(query):
-    connection = getOracleConnection()
+  def sendQuery(self, query):
+    connection = self.getOracleConnection()
     cursor = connection.cursor()
     cursor.execute(query)
     result = cursor.fetchall()[0][0]

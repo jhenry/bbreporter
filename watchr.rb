@@ -1,1 +1,1 @@
-watch('.*\.py') { |md| system("py.test -vrx test_bbreporting.py") }
+watch('.*\.py') { |md| system("py.test -rx test_bbreporting.py") }
