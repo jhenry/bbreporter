@@ -44,9 +44,24 @@ class TestReportRunner(unittest.TestCase):
     self.assertIn("and course_main.course_id like '201201%'", queries["201201"])
 
   def test_run_active_course_queries(self):
+    def mock_send_query(self, query):
+      return 1001
+    send_query = ReportRunner.send_query
+    try:
+      ReportRunner.send_query = mock_send_query
+      report_runner = ReportRunner()
+      reports = report_runner.run_active_course_queries("201201")
+      self.assertTrue(reports["201201"] > 0)
+    finally:
+      ReportRunner.send_query = send_query
+
+  def test_report_active_courses(self):
     report_runner = ReportRunner()
-    reports = report_runner.run_active_course_queries("201201")
-    self.assertTrue(reports["201201"] > 0)
+    reports = report_runner.send_report("courses.active","201201")
+    self.assertIn("courses.active.201201 1001", reports)
+
+    
+        
 
    
 if __name__ == "__main__":

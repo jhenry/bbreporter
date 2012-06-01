@@ -105,8 +105,24 @@ class ReportRunner:
     
     report = dict()
     for term,query in queries.items():
-      report[term] = 1000 + 1
+      report[term] = self.send_query(query)
 
     return report
 
+  def send_report(self, report_label, report):
+    return "active.courses.201201 1002"
+
+  def oracle_connection(self):
+    dbconfig = DBConfig()
+    connection_string = DBConfig.USER + "/" + DBConfig.PASS + "@" + DBConfig.DATABASE
+    return cx_Oracle.connect(connection_string)
+
+  def send_query(self, query):
+    connection = self.oracle_connection()
+    cursor = connection.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()[0][0]
+    cursor.close()
+    connection.close
+    return result
     
