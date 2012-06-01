@@ -46,7 +46,7 @@ class TestReportRunner(unittest.TestCase):
   def test_run_active_course_queries(self):
     report_runner = ReportRunner()
     reports = report_runner.run_active_course_queries("201201")
-    self.assertIn("active_courses.201201", reports)
+    self.assertTrue(reports["201201"] > 0)
 
    
 if __name__ == "__main__":

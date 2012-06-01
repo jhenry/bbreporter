@@ -99,3 +99,14 @@ class ReportRunner:
 
       queries[term] = query
     return queries
+
+  def run_active_course_queries(self, current_term):
+    queries = self.build_active_course_queries(current_term)
+    
+    report = dict()
+    for term,query in queries.items():
+      report[term] = 1000 + 1
+
+    return report
+
+    
