@@ -55,13 +55,33 @@ class TestReportRunner(unittest.TestCase):
     finally:
       ReportRunner.send_query = send_query
 
-  def test_report_active_courses(self):
-    report_runner = ReportRunner()
-    reports = report_runner.send_report("courses.active","201201")
-    self.assertIn("courses.active.201201 1001", reports)
+  def test_report_active_courses_to_carbon(self):
+    import time
+    now = int(time.time())
+    def mock_send_to_carbon(self, report):
+      return "courses.active.201201 1001"
+    send_to_carbon = ReportRunner.send_to_carbon
+    try:
+      ReportRunner.send_to_carbon = mock_send_to_carbon
+      report_runner = ReportRunner()
+      reports = report_runner.send_report("courses.active.201201", "1001",
+      "carbon", now)
+      self.assertIn("courses.active.201201 1001 " + str(now), reports)
+    finally:
+      ReportRunner.send_to_carbon = send_to_carbon        
 
-    
-        
+  def test_report_active_courses_to_statsd(self):
+    def mock_send_to_statsd(self, report):
+      return "courses.active.201201 1001"
+    send_to_statsd = ReportRunner.send_to_statsd
+    try:
+      ReportRunner.send_to_statsd = mock_send_to_statsd
+      report_runner = ReportRunner()
+      reports = report_runner.send_report("courses.active.201201", "1001")
+      self.assertIn("courses.active.201201 1001", reports)
+    finally:
+      ReportRunner.send_to_statsd = send_to_statsd        
+
 
    
 if __name__ == "__main__":
