@@ -84,10 +84,15 @@ class ReportRunner:
     queries = dict()
     
     for term in active_terms:
-      query = """select count(course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S' group by course_main.course_id;"""
-
+      query = self.active_courses_query(term)
       queries[term] = query
     return queries
+
+  def active_courses_query(self, term):
+      query = """select count(course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S' group by course_main.course_id;"""
+      return query
+
+
 
   def run_active_course_queries(self, current_term):
     queries = self.build_active_course_queries(current_term)
