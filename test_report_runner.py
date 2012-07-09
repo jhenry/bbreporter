@@ -39,9 +39,16 @@ class TestReportRunner(unittest.TestCase):
 
   def test_build_active_course_queries(self):
     report_runner = ReportRunner()
-    queries = report_runner.build_active_course_queries("201201")
+    queries = report_runner.build_active_queries("active_courses_query","201201")
     self.assertIn("201201", queries)
     self.assertIn("and course_main.course_id like '201201%'", queries["201201"])
+
+  def test_build_active_student_enrollments_queries(self):
+    report_runner = ReportRunner()
+    queries = report_runner.build_active_queries("active_student_enrollments_query","201201")
+    self.assertIn("201201", queries)
+    self.assertIn("and course_main.course_id like '201201%'", queries["201201"])
+    self.assertIn("and course_users.role='S'", queries["201201"])
 
   def test_run_active_course_queries(self):
     def mock_send_query(self, query):

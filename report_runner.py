@@ -31,7 +31,6 @@ class ReportRunner:
     active_terms = [current_term]
 
     next_term = self.next_term(current_term)
-
     active_terms.insert(0, next_term)
 
     last_term = self.previous_term(current_term)
@@ -39,7 +38,7 @@ class ReportRunner:
 
     two_terms_ago = self.previous_term(last_term) 
     active_terms.append(two_terms_ago)
-
+    
     three_terms_ago = self.previous_term(two_terms_ago) 
     active_terms.append(three_terms_ago)
 
@@ -75,7 +74,6 @@ class ReportRunner:
 
     return previous_term
 
-
   def build_active_course_queries(self, current_term=None):
     if current_term is None:
       current_term = self.current_term()
@@ -86,12 +84,33 @@ class ReportRunner:
     for term in active_terms:
       query = self.active_courses_query(term)
       queries[term] = query
+
     return queries
 
-  def active_courses_query(self, term):
-      query = """select count(course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S' group by course_main.course_id;"""
-      return query
+  def build_active_queries(self, query_method, current_term=None):
+    if current_term is None:
+      current_term = self.current_term()
 
+    active_terms = self.active_terms(current_term)
+    queries = dict()
+    
+    for term in active_terms:
+      # query = self.active_courses_query(term)
+      query = getattr(self, query_method) (term)
+          
+      queries[term] = query
+
+    return queries
+  
+  def active_student_enrollments_query(self, term):
+    query = """select count(distinct activity_accumulator.user_pk1) as active_users from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S';"""
+
+    return query
+
+  def active_courses_query(self, term):
+    query = """select count(course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S' group by course_main.course_id;"""
+
+    return query
 
 
   def run_active_course_queries(self, current_term):
