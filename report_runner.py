@@ -74,19 +74,6 @@ class ReportRunner:
 
     return previous_term
 
-  def build_active_course_queries(self, current_term=None):
-    if current_term is None:
-      current_term = self.current_term()
-
-    active_terms = self.active_terms(current_term)
-    queries = dict()
-    
-    for term in active_terms:
-      query = self.active_courses_query(term)
-      queries[term] = query
-
-    return queries
-
   def build_active_queries(self, query_method, current_term=None):
     if current_term is None:
       current_term = self.current_term()
@@ -114,7 +101,7 @@ class ReportRunner:
 
 
   def run_active_course_queries(self, current_term):
-    queries = self.build_active_course_queries(current_term)
+    queries = self.build_active_queries("active_courses_query", current_term)
     reports = dict()
     for term,query in queries.items():
       reports[term] = self.send_query(query)
