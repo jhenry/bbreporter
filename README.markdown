@@ -15,7 +15,7 @@ like:
 Your mileage shall be variable with these, and you'll be using these at
 your own risk. 
 
-UMBC has some good tools available for this, and are likely to have a
+UMBC has some good looking tools available for this, and are likely to have a
 more robust set of queries available.
 
 You might also be interested in the sort-of-open Project Astro building
@@ -36,7 +36,7 @@ Here's how you might set up your storage-schema.conf and
 aggregation-schema.conf files to store incoming data with a high rate of
 retention and precision:
 
-`[everything_1min_1day]
+```[everything_1min_1day]
 priority = 100
 pattern = .*
 retentions = 10s:10y
@@ -44,7 +44,7 @@ retentions = 10s:10y
 
 [default]
 pattern = .*
-xFilesFactor = 0.0`
+xFilesFactor = 0.0```
 
 There are methods included to support sending via statsd or directly to carbon.  The below articles and issues do a good job of explaining how graphite and statsd collect your data and what they do with it.
 
