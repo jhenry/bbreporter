@@ -12,10 +12,15 @@ class TestReportRunner(unittest.TestCase):
   def pending(self, message = "pending"):
     py.test.skip(message)
 
-  def test_current_term(self):
+  def test_specific_term(self):
     report_runner = ReportRunner()
     current_term = report_runner.get_term(year=2012, month=3)
     self.assertTrue(current_term == "201201")
+
+  def test_current_term(self):
+    report_runner = ReportRunner()
+    current_term = report_runner.get_term()
+    self.assertRegexpMatches(current_term, '[0-9]{6}')
 
   def test_active_terms(self):
     report_runner = ReportRunner()
@@ -61,7 +66,7 @@ class TestReportRunner(unittest.TestCase):
       self.assertTrue(reports["201201"] > 0)
     finally:
       ReportRunner.send_query = send_query
-
+  
   def test_report_active_courses_to_carbon(self):
     import time
     now = int(time.time())

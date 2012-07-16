@@ -11,7 +11,7 @@ class ReportRunner:
 
   def get_term(self, year = None, month = None):
     if year is None or month is None:
-      now = datetime.datetime.now()
+      now = datetime.now()
       year = now.year
       month = now.month
 
