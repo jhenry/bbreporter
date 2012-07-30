@@ -2,10 +2,8 @@ from report_runner import ReportRunner
 import unittest
 import py
 import pytest_skipping
-# import mox
 import re
 import datetime
-import cx_Oracle
 
 class TestReportRunner(unittest.TestCase):
 
