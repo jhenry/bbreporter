@@ -9,6 +9,15 @@ from statsd_client import Statsd
 class ReportRunner:
 
   def get_term(self, year = None, month = None):
+    """Generate a 6-digit term code.
+    
+    Takes a year and a month as arguments.  If none are given, a term
+    code is generated based on the current date.
+    
+    Keyword arguments:
+    year -- the year, in YYYY format  (default None)
+    month -- the month in MM format (default None)
+    """
     if year is None or month is None:
       now = datetime.now()
       year = now.year
@@ -24,6 +33,20 @@ class ReportRunner:
       return str(year) + "09"
 
   def active_terms(self, current_term = None):
+    """Generate a list of 5 active terms.
+
+    Takes a term code as argument.  If none is given, the current term is
+    assumed. 
+
+    Returns an array of term codes, representing three terms in 
+    the past, the current term, and the next term.
+
+    $ python report_runner.py active_terms 201206
+    ['201209', '201206', '201201', '201109', '201106']
+
+    Keyword arguments:
+    current_term -- The current term to start from (default None).
+    """
     if current_term is None:
       current_term = self.get_term()
 
@@ -44,6 +67,10 @@ class ReportRunner:
     return active_terms
 
   def next_term(self, current_term):
+    """Calculate the next term code.
+
+    Determine what one code in the future is."""
+    
 
     term_year = current_term[:4] 
     term_month = current_term[4:6]
@@ -59,6 +86,9 @@ class ReportRunner:
     return next_term
 
   def previous_term(self, current_term):
+    """Calculate the previous term code.
+
+    """
 
     term_year = current_term[:4] 
     term_month = current_term[4:6]
@@ -74,6 +104,14 @@ class ReportRunner:
     return previous_term
 
   def build_active_queries(self, query_method, current_term=None):
+    """Build a query string by calling a query method and a term.
+
+    Dynamically call a method containing the query string, sending the term
+    along to specify a de facto time period.
+
+    Return an associative array containing results for each of 
+    the surrounding terms.
+    """
     if current_term is None:
       current_term = self.current_term()
 
@@ -88,17 +126,33 @@ class ReportRunner:
     return queries
   
   def active_student_enrollments_query(self, term):
+    """Return query string for active student enrollments.
+    
+    Select distinct students from the activity tracking table, 
+    who have entered a course whose label matches the specified 
+    "term" at least once.
+    """
     query = """select count(distinct activity_accumulator.user_pk1) as active_users from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S';"""
 
     return query
 
   def active_courses_query(self, term):
-    query = """select count(course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S' group by course_main.course_id;"""
+    """Return query string for active courses.
+
+    Select courses with a label matching supplied term, 
+    which have had at least one student enter them at some point."""
+
+    query = """select count(distinct course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S';"""
 
     return query
 
 
   def run_active_course_queries(self, current_term):
+    """Return results of active course queries.
+
+    Send queries to database, store the results in an associative array, and
+    return that array.
+    """
     queries = self.build_active_queries("active_courses_query", current_term)
     reports = dict()
     for term,query in queries.items():
@@ -107,6 +161,7 @@ class ReportRunner:
 
 
   def oracle_connection(self):
+    """Return an oracle connection handle."""
     import cx_Oracle
     oracle_host = local_settings.DATABASE['HOST']
     oracle_user = local_settings.DATABASE['USER']
@@ -115,6 +170,7 @@ class ReportRunner:
     return cx_Oracle.connect(connection_string)
 
   def send_query(self, query):
+    """Send query oracle, and return result."""
     connection = self.oracle_connection()
     cursor = connection.cursor()
     cursor.execute(query)
@@ -124,6 +180,7 @@ class ReportRunner:
     return result
     
   def send_report(self, report_label, report, delivery = "statsd", stamp = None):
+    """Send report data to specified aggregator."""
     if delivery is "statsd":
       return "Statsd: " + report_label + " " +  str(report)
     else:
@@ -134,9 +191,11 @@ class ReportRunner:
       return "Carbon: " + report_string
 
   def send_to_statsd(self, report_label, report):
-      Statsd.update_stats(report_label, report)
+    """Send data to aggregator via statsd."""
+    Statsd.update_stats(report_label, report)
 
   def send_to_carbon(self, report):
+    """Send data to aggregator directly via carbon."""
     carbon_host = local_settings.CARBON['HOST']
     carbon_port = int(local_settings.CARBON['PORT'])
     sock = socket()
