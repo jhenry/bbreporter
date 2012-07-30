@@ -36,7 +36,8 @@ Here's how you might set up your storage-schema.conf and
 aggregation-schema.conf files to store incoming data with a high rate of
 retention and precision:
 
-```[everything_1min_1day]
+```
+[everything_1min_1day]
 priority = 100
 pattern = .*
 retentions = 10s:10y
@@ -44,7 +45,8 @@ retentions = 10s:10y
 
 [default]
 pattern = .*
-xFilesFactor = 0.0```
+xFilesFactor = 0.0
+```
 
 There are methods included to support sending via statsd or directly to carbon.  The below articles and issues do a good job of explaining how graphite and statsd collect your data and what they do with it.
 
@@ -54,10 +56,11 @@ There are methods included to support sending via statsd or directly to carbon. 
 
 ## Usage
 
-This can be run as a module or directly from the command prompt.  To use in a python application, you might do something like this:
+This can be run as a module or directly from the command prompt.  To use in a python application, you might do something like this: 
 
 ```
->>> from report_runner import ReportRunner>>> rr = ReportRunner()>>>
+>>> from report_runner import ReportRunner
+>>> rr = ReportRunner()
 >>> rr.get_term()
 '201206'
 >>> rr.active_terms()
