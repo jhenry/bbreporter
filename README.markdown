@@ -52,7 +52,45 @@ There are methods included to support sending via statsd or directly to carbon. 
 * https://github.com/etsy/statsd/issues/22#issuecomment-2549988 
 * http://obfuscurity.com/2012/04/Unhelpful-Graphite-Tip-9
 
+## Usage
 
+This can be run as a module or directly from the command prompt.  To use in a python application, you might do something like this:
+
+```
+>>> from report_runner import ReportRunner>>> rr = ReportRunner()>>>
+>>> rr.get_term()
+'201206'
+>>> rr.active_terms()
+['201209', '201206', '201201', '201109', '201106']
+>>> rr.build_active_queries("active_courses_query", "201206")
+{'201106': "select
+count(distinct course_main.course_id) from activity_accumulator,
+course_main, course_users where activity_accumulator.course_pk1 =
+course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and
+course_main.course_id like '201106%' and course_users.role
+...
+```
+
+Similarly, via prompt:
+
+```
+$ python report_runner.py next_term 201206
+201209
+$ python report_runner.py previous_term 201206
+201201
+$ python report_runner.py get_term 
+201206
+$ python report_runner.py get_term 2011 10
+201109
+$ python report_runner.py active_terms
+['201209', '201206', '201201', '201109', '201106']
+$ python report_runner.py active_terms 201109
+['201201', '201109', '201106', '201101', '201009']
+$ python report_runner.py build_active_queries active_courses_query 201209
+{'201201': "select count(distinct course_main.course_id) from
+activity_accumulat
+...
+```
 
 
 
