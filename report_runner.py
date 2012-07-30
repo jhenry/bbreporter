@@ -3,7 +3,6 @@ from socket import socket
 import re
 from datetime import datetime
 import time
-# import cx_Oracle
 import local_settings as local_settings
 from statsd_client import Statsd
 
@@ -82,7 +81,6 @@ class ReportRunner:
     queries = dict()
     
     for term in active_terms:
-      # query = self.active_courses_query(term)
       query = getattr(self, query_method) (term)
           
       queries[term] = query
@@ -167,8 +165,5 @@ if __name__ == '__main__':
 
   args = parser.parse_args(sys.argv[1:])      
 
-  # print args.args
   print args.func(*args.args)
 
-
-        
