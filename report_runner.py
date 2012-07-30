@@ -3,7 +3,7 @@ from socket import socket
 import re
 from datetime import datetime
 import time
-import cx_Oracle
+# import cx_Oracle
 import local_settings as local_settings
 from statsd_client import Statsd
 
@@ -14,6 +14,8 @@ class ReportRunner:
       now = datetime.now()
       year = now.year
       month = now.month
+    else:
+      month = int(month)
 
     if month in range(1, 6):
       return str(year) + "01"
@@ -22,10 +24,8 @@ class ReportRunner:
     elif month in range(9, 13):
       return str(year) + "09"
 
-  def active_terms(self, current_term = "201201"):
-    try:
-      current_term
-    except NameError:
+  def active_terms(self, current_term = None):
+    if current_term is None:
       current_term = self.get_term()
 
     active_terms = [current_term]
@@ -109,6 +109,7 @@ class ReportRunner:
 
 
   def oracle_connection(self):
+    import cx_Oracle
     oracle_host = local_settings.DATABASE['HOST']
     oracle_user = local_settings.DATABASE['USER']
     oracle_pass = local_settings.DATABASE['PASS']
@@ -148,3 +149,26 @@ class ReportRunner:
       sys.exit(1)
     sock.send(report)
 
+if __name__ == '__main__':
+  import argparse
+  import inspect
+  parser = argparse.ArgumentParser()
+  subparsers = parser.add_subparsers()
+  report_runner = ReportRunner()
+  for name in dir(report_runner):
+    if not name.startswith('_'):
+      attr = getattr(report_runner, name)
+      if callable(attr):
+        sig = inspect.formatargspec(inspect.getargspec(attr))
+        doc = (attr.__doc__ or str(sig)).strip().splitlines()[0]
+        subparser = subparsers.add_parser(name, help=doc)
+        subparser.add_argument('args', nargs=argparse.REMAINDER)
+        subparser.set_defaults(func=getattr(report_runner, name))
+
+  args = parser.parse_args(sys.argv[1:])      
+
+  # print args.args
+  print args.func(*args.args)
+
+
+        
