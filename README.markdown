@@ -8,7 +8,7 @@ archiving usage data over time for a Blackboard System.
 Moderate test coverage is aspired to.  Tests can be run with something
 like:
 
-`py.test -rvx test_bbreporting.py`
+`py.test -rvx test_report_runner.py`
 
 ## City vs Highway, etc
 
