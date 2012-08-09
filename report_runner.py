@@ -3,7 +3,6 @@ from socket import socket
 import re
 from datetime import datetime
 import time
-import cx_Oracle
 import local_settings as local_settings
 from statsd_client import Statsd
 
