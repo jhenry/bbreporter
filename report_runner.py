@@ -147,13 +147,13 @@ class ReportRunner:
     return query
 
 
-  def run_active_course_queries(self, current_term):
+  def run_active_queries(self, query_method, current_term):
     """Return results of active course queries.
 
     Send queries to database, store the results in an associative array, and
     return that array.
     """
-    queries = self.build_active_queries("active_courses_query", current_term)
+    queries = self.build_active_queries(query_method, current_term)
     reports = dict()
     for term,query in queries.items():
       reports[term] = self.send_query(query)

@@ -60,7 +60,7 @@ class TestReportRunner(unittest.TestCase):
     try:
       ReportRunner.send_query = mock_send_query
       report_runner = ReportRunner()
-      reports = report_runner.run_active_course_queries("201201")
+      reports = report_runner.run_active_queries("active_courses_query", "201201")
       self.assertTrue(reports["201201"] > 0)
     finally:
       ReportRunner.send_query = send_query
