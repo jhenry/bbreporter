@@ -3,6 +3,7 @@ from socket import socket
 import re
 from datetime import datetime
 import time
+import cx_Oracle
 import local_settings as local_settings
 from statsd_client import Statsd
 
@@ -132,7 +133,7 @@ class ReportRunner:
     who have entered a course whose label matches the specified 
     "term" at least once.
     """
-    query = """select count(distinct activity_accumulator.user_pk1) as active_users from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S';"""
+    query = """select count(distinct activity_accumulator.user_pk1) as active_users from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S'"""
 
     return query
 
@@ -142,7 +143,7 @@ class ReportRunner:
     Select courses with a label matching supplied term, 
     which have had at least one student enter them at some point."""
 
-    query = """select count(distinct course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S';"""
+    query = """select count(distinct course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S'"""
 
     return query
 
