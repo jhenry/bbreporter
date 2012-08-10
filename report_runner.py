@@ -113,7 +113,7 @@ class ReportRunner:
     the surrounding terms.
     """
     if current_term is None:
-      current_term = self.current_term()
+      current_term = self.get_term()
 
     active_terms = self.active_terms(current_term)
     queries = dict()
@@ -125,7 +125,7 @@ class ReportRunner:
 
     return queries
   
-  def active_student_enrollments_query(self, term):
+  def active_student_enrollments(self, term):
     """Return query string for active student enrollments.
     
     Select distinct students from the activity tracking table, 
@@ -136,7 +136,7 @@ class ReportRunner:
 
     return query
 
-  def active_courses_query(self, term):
+  def active_courses(self, term):
     """Return query string for active courses.
 
     Select courses with a label matching supplied term, 
@@ -147,7 +147,7 @@ class ReportRunner:
     return query
 
 
-  def run_active_queries(self, query_method, current_term):
+  def run_active_queries(self, query_method, current_term=None):
     """Return results of active course queries.
 
     Send queries to database, store the results in an associative array, and
@@ -187,6 +187,18 @@ class ReportRunner:
     cursor.close()
     connection.close
     return result
+
+  def run_report(self, query_method, report_prefix=None):
+    """Build, send, and report query"""
+    if report_prefix is None:
+	report_prefix = query_method
+
+    reports = self.run_active_queries(query_method) 
+    for label, report in reports.items():
+      prefixed_label = str(report_prefix) + "." + label
+      self.send_report(prefixed_label, report)
+    return reports
+    
     
   def send_report(self, report_label, report, delivery = "mysql", stamp = None):
     """Send report data to specified aggregator."""
@@ -204,7 +216,7 @@ class ReportRunner:
   def send_to_mysql(self, report_label, report):
 	connection = self.mysql_connection()
 	cursor = connection.cursor()
-	cursor.execute("insert into reports (label, report) values('" + report_label + "','" + report + "')")
+	cursor.execute("insert into reports (label, report) values('" + str(report_label) + "','" + str(report) + "')")
 	connection.commit()
 	cursor.close()
 	connection.close()
