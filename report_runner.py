@@ -159,6 +159,15 @@ class ReportRunner:
       reports[term] = self.send_query(query)
     return reports
 
+  def mysql_connection(self):
+    """Return a MySQL connection."""
+    import mysql
+    mysql_host = local_settings.MYSQL['HOST']
+    mysql_user = local_settings.MYSQL['USER']
+    mysql_pass = local_settings.MYSQL['PASS']
+    mysql_database = local_settings.MYSQL['DATABASE']
+    connection = mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_pass)
+	return connection
 
   def oracle_connection(self):
     """Return an oracle connection handle."""
@@ -189,6 +198,14 @@ class ReportRunner:
       report_string = report_label + " " + str(report) + " " + str(stamp) + "\n"
       self.send_to_carbon(report_string)
       return "Carbon: " + report_string
+
+  def send_to_mysql(self, report_label, report):
+	connection = self.mysql_connection()
+	cursor = connection.cursor()
+	cursor.execute("insert into reports (label, report) values('" + report_label + "','" + report + "')")
+	connection.commit()
+	cursor.close()
+	connection.close()
 
   def send_to_statsd(self, report_label, report):
     """Send data to aggregator via statsd."""
