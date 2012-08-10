@@ -136,6 +136,28 @@ class ReportRunner:
 
     return query
 
+  def active_instructors(self, term):
+    """Return query string for active instructor enrollments.
+    
+    Select distinct instructors from the activity tracking table, 
+    who have entered a course whose label matches the specified 
+    "term" at least once.
+    """
+    query = """select count(distinct(users.pk1)) from course_main,course_users,users, activity_accumulator where course_users.crsmain_pk1=course_main.pk1 and course_main.pk1=activity_accumulator.course_pk1 and course_main.course_id like '""" + term + """%' and course_users.users_pk1=users.pk1 and course_users.role='P'"""
+
+    return query
+
+  def local_users(self, term):
+    """Return query string for locally created users.
+    
+    Select distinct instructors from the activity tracking table, 
+    who have entered a course whose label matches the specified 
+    "term" at least once.
+    """
+    query = """select count(distinct(users.pk1)) from users where users.data_src_pk1=2"""
+
+    return query
+
   def active_courses(self, term):
     """Return query string for active courses.
 
@@ -188,8 +210,21 @@ class ReportRunner:
     connection.close
     return result
 
-  def run_report(self, query_method, report_prefix=None):
-    """Build, send, and report query"""
+  def run_report(self, query_method, current_term=None, report_prefix=None):
+    """Build, send, and report a single query"""
+    if current_term is None:
+	current_term = self.get_term()
+    if report_prefix is None:
+	report_prefix = query_method
+    prefixed_label = str(report_prefix) + "." + current_term
+    query = getattr(self, query_method) (current_term)
+    report = self.send_query(query)
+    self.send_report(prefixed_label, report)
+    return report
+
+
+  def run_reports(self, query_method, report_prefix=None):
+    """Build, send, and report a set of term queries"""
     if report_prefix is None:
 	report_prefix = query_method
 
