@@ -161,13 +161,13 @@ class ReportRunner:
 
   def mysql_connection(self):
     """Return a MySQL connection."""
-    import mysql
+    import mysql.connector
     mysql_host = local_settings.MYSQL['HOST']
     mysql_user = local_settings.MYSQL['USER']
     mysql_pass = local_settings.MYSQL['PASS']
     mysql_database = local_settings.MYSQL['DATABASE']
     connection = mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_pass)
-	return connection
+    return connection
 
   def oracle_connection(self):
     """Return an oracle connection handle."""
@@ -188,16 +188,18 @@ class ReportRunner:
     connection.close
     return result
     
-  def send_report(self, report_label, report, delivery = "statsd", stamp = None):
+  def send_report(self, report_label, report, delivery = "mysql", stamp = None):
     """Send report data to specified aggregator."""
     if delivery is "statsd":
       return "Statsd: " + report_label + " " +  str(report)
-    else:
+    elif delivery is "carbon":
       if stamp is None:
         stamp = int (time.time())
       report_string = report_label + " " + str(report) + " " + str(stamp) + "\n"
       self.send_to_carbon(report_string)
       return "Carbon: " + report_string
+    else:
+      self.send_to_mysql(report_label, report)
 
   def send_to_mysql(self, report_label, report):
 	connection = self.mysql_connection()
