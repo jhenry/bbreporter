@@ -42,13 +42,13 @@ class TestReportRunner(unittest.TestCase):
 
   def test_build_active_course_queries(self):
     report_runner = ReportRunner()
-    queries = report_runner.build_active_queries("active_courses_query","201201")
+    queries = report_runner.build_active_queries("active_courses","201201")
     self.assertIn("201201", queries)
     self.assertIn("and course_main.course_id like '201201%'", queries["201201"])
 
   def test_build_active_student_enrollments_queries(self):
     report_runner = ReportRunner()
-    queries = report_runner.build_active_queries("active_student_enrollments_query","201201")
+    queries = report_runner.build_active_queries("active_student_enrollments","201201")
     self.assertIn("201201", queries)
     self.assertIn("and course_main.course_id like '201201%'", queries["201201"])
     self.assertIn("and course_users.role='S'", queries["201201"])
@@ -60,7 +60,7 @@ class TestReportRunner(unittest.TestCase):
     try:
       ReportRunner.send_query = mock_send_query
       report_runner = ReportRunner()
-      reports = report_runner.run_active_queries("active_courses_query", "201201")
+      reports = report_runner.run_active_queries("active_courses", "201201")
       self.assertTrue(reports["201201"] > 0)
     finally:
       ReportRunner.send_query = send_query
@@ -87,7 +87,8 @@ class TestReportRunner(unittest.TestCase):
     try:
       ReportRunner.send_to_statsd = mock_send_to_statsd
       report_runner = ReportRunner()
-      reports = report_runner.send_report("courses.active.201201", "1001")
+      reports = report_runner.send_report("courses.active.201201", "1001",
+      "statsd")
       self.assertIn("courses.active.201201 1001", reports)
     finally:
       ReportRunner.send_to_statsd = send_to_statsd        
