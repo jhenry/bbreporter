@@ -1,0 +1,21 @@
+[oracle]
+database =
+host = 
+user = 
+password = 
+
+[carbon]
+host = 127.0.0.1 
+port = 2003
+
+[statsd]
+host = localhost
+port = 8125
+
+[mysql]
+database =
+host = 
+user =
+password =
+
+
