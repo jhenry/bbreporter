@@ -188,8 +188,8 @@ class ReportRunner:
     mysql_user = local_settings.MYSQL['USER']
     mysql_pass = local_settings.MYSQL['PASS']
     mysql_database = local_settings.MYSQL['DATABASE']
-    connection = mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_pass)
-    return connection
+    mysql_connection = mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_pass)
+    return mysql_connection
 
   def oracle_connection(self):
     """Return an oracle connection handle."""
@@ -249,12 +249,12 @@ class ReportRunner:
       self.send_to_mysql(report_label, report)
 
   def send_to_mysql(self, report_label, report):
-	connection = self.mysql_connection()
-	cursor = connection.cursor()
-	cursor.execute("insert into reports (label, report) values('" + str(report_label) + "','" + str(report) + "')")
-	connection.commit()
-	cursor.close()
-	connection.close()
+	mysql_connection = self.mysql_connection()
+	mysql_cursor = mysql_connection.cursor()
+	mysql_cursor.execute("insert into reports (label, report) values('" + str(report_label) + "','" + str(report) + "')")
+	mysql_connection.commit()
+	mysql_cursor.close()
+	mysql_connection.close()
 
   def send_to_statsd(self, report_label, report):
     """Send data to aggregator via statsd."""
