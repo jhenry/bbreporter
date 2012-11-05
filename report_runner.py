@@ -195,8 +195,7 @@ class ReportRunner:
     mysql_database = self.configs.get('mysql', 'database') 
     mysql_password = self.configs.get('mysql', 'password')
 
-    mysql_connection =
-    mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_password)
+    mysql_connection = mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_password)
     return mysql_connection
 
   def oracle_connection(self):
