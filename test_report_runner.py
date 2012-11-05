@@ -10,6 +10,10 @@ class TestReportRunner(unittest.TestCase):
   def pending(self, message = "pending"):
     py.test.skip(message)
 
+  def test_loaded_configs(self):
+    report_runner = ReportRunner()
+    self.assertTrue(report_runner.configs.get('carbon', 'port') == "2003")
+    
   def test_specific_term(self):
     report_runner = ReportRunner()
     current_term = report_runner.get_term(year=2012, month=3)

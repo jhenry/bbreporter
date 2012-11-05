@@ -2,11 +2,17 @@ import sys
 from socket import socket
 import re
 from datetime import datetime
+from ConfigParser import SafeConfigParser
 import time
-import local_settings as local_settings
 from statsd_client import Statsd
 
 class ReportRunner:
+
+  def __init__(self):
+      parser = SafeConfigParser()
+      parser.readfp(open('environment.cfg'))
+      parser.readfp(open(parser.get('DEFAULT','environment')))
+      self.configs = parser
 
   def get_term(self, year = None, month = None):
     """Generate a 6-digit term code.
@@ -184,19 +190,22 @@ class ReportRunner:
   def mysql_connection(self):
     """Return a MySQL connection."""
     import mysql.connector
-    mysql_host = local_settings.MYSQL['HOST']
-    mysql_user = local_settings.MYSQL['USER']
-    mysql_pass = local_settings.MYSQL['PASS']
-    mysql_database = local_settings.MYSQL['DATABASE']
-    mysql_connection = mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_pass)
+    mysql_host = self.configs.get('mysql', 'host')
+    mysql_user = self.configs.get('mysql', 'user')
+    mysql_database = self.configs.get('mysql', 'database') 
+    mysql_password = self.configs.get('mysql', 'password')
+
+    mysql_connection =
+    mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_password)
     return mysql_connection
 
   def oracle_connection(self):
     """Return an oracle connection handle."""
     import cx_Oracle
-    oracle_host = local_settings.DATABASE['HOST']
-    oracle_user = local_settings.DATABASE['USER']
-    oracle_pass = local_settings.DATABASE['PASS']
+    oracle_host = self.cofigs.get('oracle', 'host')
+    oracle_user = self.cofigs.get('oracle', 'user')    
+    oracle_pass = self.cofigs.get('oracle', 'pass')
+
     connection_string = oracle_user + "/" + oracle_pass + "@" + oracle_host
     return cx_Oracle.connect(connection_string)
 
@@ -262,8 +271,8 @@ class ReportRunner:
 
   def send_to_carbon(self, report):
     """Send data to aggregator directly via carbon."""
-    carbon_host = local_settings.CARBON['HOST']
-    carbon_port = int(local_settings.CARBON['PORT'])
+    carbon_host = self.configs.get('carbon', 'host')
+    carbon_port = int(self.configs.get('carbon', 'port'))
     sock = socket()
     try:
       sock.connect( (carbon_host, carbon_port) )
