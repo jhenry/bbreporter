@@ -201,9 +201,9 @@ class ReportRunner:
   def oracle_connection(self):
     """Return an oracle connection handle."""
     import cx_Oracle
-    oracle_host = self.cofigs.get('oracle', 'host')
-    oracle_user = self.cofigs.get('oracle', 'user')    
-    oracle_pass = self.cofigs.get('oracle', 'pass')
+    oracle_host = self.configs.get('oracle', 'host')
+    oracle_user = self.configs.get('oracle', 'user')    
+    oracle_pass = self.configs.get('oracle', 'pass')
 
     connection_string = oracle_user + "/" + oracle_pass + "@" + oracle_host
     return cx_Oracle.connect(connection_string)
