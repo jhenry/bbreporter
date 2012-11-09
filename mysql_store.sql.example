@@ -1,0 +1,12 @@
+CREATE TABLE  REPORTS_DB.reports (
+id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+label VARCHAR( 225 ) NOT NULL ,
+report TEXT NOT NULL ,
+timestamp TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT
+CURRENT_TIMESTAMP ,
+INDEX (  label )
+) ENGINE = MYISAM
+
+INSERT INTO reports (label, report) VALUES ('active_courses.200909', 786);
+INSERT INTO reports (label, report) VALUES ('active_instructors.200909', 538);
+INSERT INTO reports (label, report) VALUES ('active_student_enrollments.200909', 12373);

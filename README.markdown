@@ -23,10 +23,26 @@ block.
 
 ## Install & Configure
 
-This is meant to feed into graphite, but things should fit just fine
-into other tools without a too much heavy lifting. Basically, as long as you
-can send something a label, a number, and a timestamp, this should work.
+Configuration files use ConfigParse to read in settings.  Tell environment.cfg
+to read in the appropriate environment settings.
 
+If you are running this in a pythonbrew/virtualenv sandbox, you can turn that
+on with something like:
+
+`
+$ pythonbrew use 2.7.2
+$ pythonbrew venv use reporting
+`
+
+### Reporting endpoints
+
+This was originally  meant to feed into graphite, but things should fit just fine into other tools without a too much heavy lifting. Basically, as long as you can send something a label, a number, and a timestamp, this should work.
+
+#### MySQL
+
+Basic table structure is in mysql_store.sql.example.  
+
+#### Graphite, Carbon, and Statsd
 
 If you're using Graphite, you may be aware that it is great for reporting continuous streams of data. It gets a little more cumbersome when you want it to store and present periodic data (say, sending it one point a day). You'll want to be wary of how it's storing and compressing things.
 
