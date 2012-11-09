@@ -189,24 +189,28 @@ class ReportRunner:
 
   def mysql_connection(self):
     """Return a MySQL connection."""
-    import mysql.connector
+    import pymysql
+    
     mysql_host = self.configs.get('mysql', 'host')
     mysql_user = self.configs.get('mysql', 'user')
-    mysql_database = self.configs.get('mysql', 'database') 
+    mysql_database = self.configs.get('mysql', 'database')
     mysql_password = self.configs.get('mysql', 'password')
 
-    mysql_connection = mysql.connector.connect(host=mysql_host,database=mysql_database,user=mysql_user,password=mysql_password)
+    mysql_connection = pymysql.connect(host=mysql_host, user=mysql_user, passwd=mysql_password, db=mysql_database) 
+
     return mysql_connection
 
   def oracle_connection(self):
     """Return an oracle connection handle."""
     import cx_Oracle
     oracle_host = self.configs.get('oracle', 'host')
+    oracle_port = self.configs.get('oracle', 'port')
+    oracle_sid = self.configs.get('oracle', 'sid')
     oracle_user = self.configs.get('oracle', 'user')    
-    oracle_pass = self.configs.get('oracle', 'pass')
+    oracle_pass = self.configs.get('oracle', 'password')
+    oracle_dsn_tns = cx_Oracle.makedsn(oracle_host, oracle_port, oracle_sid)
 
-    connection_string = oracle_user + "/" + oracle_pass + "@" + oracle_host
-    return cx_Oracle.connect(connection_string)
+    return cx_Oracle.connect(oracle_user, oracle_pass, oracle_dsn_tns)
 
   def send_query(self, query):
     """Send query oracle, and return result."""
