@@ -109,27 +109,6 @@ class ReportRunner:
 
     return previous_term
 
-  def build_active_queries(self, query_method, current_term=None):
-    """Build a query string by calling a query method and a term.
-
-    Dynamically call a method containing the query string, sending the term
-    along to specify a de facto time period.
-
-    Return an associative array containing results for each of 
-    the surrounding terms.
-    """
-    if current_term is None:
-      current_term = self.get_term()
-
-    active_terms = self.active_terms(current_term)
-    queries = dict()
-    
-    for term in active_terms:
-      query = getattr(self, query_method) (term)
-          
-      queries[term] = query
-
-    return queries
   
   def active_student_enrollments(self, term):
     """Return query string for active student enrollments.
@@ -173,7 +152,28 @@ class ReportRunner:
     query = """select count(distinct course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S'"""
 
     return query
+  
+  def build_active_queries(self, query_method, current_term=None):
+    """Build a query string by calling a query method and a term.
 
+    Dynamically call a method containing the query string, sending the term
+    along to specify a de facto time period.
+
+    Return an associative array containing results for each of 
+    the surrounding terms.
+    """
+    if current_term is None:
+      current_term = self.get_term()
+
+    active_terms = self.active_terms(current_term)
+    queries = dict()
+    
+    for term in active_terms:
+      query = getattr(self, query_method) (term)
+          
+      queries[term] = query
+
+    return queries
 
   def run_active_queries(self, query_method, current_term=None):
     """Return results of active course queries.
