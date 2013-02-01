@@ -152,6 +152,53 @@ class ReportRunner:
     query = """select count(distinct course_main.course_id) from activity_accumulator, course_main, course_users where activity_accumulator.course_pk1 = course_main.pk1 and course_users.crsmain_pk1=course_main.pk1 and course_main.course_id like '""" + term + """%' and course_users.role='S'"""
 
     return query
+
+  def domain_collections(self): 
+    """Return querie(s) for counting domain collections 
+ 
+    Select all domains, then select courses, orgs, and user 
+    collections for each domain.""" 
+    domains = dict()
+    domains_query = """select pk1, batch_uid, name from domain""" 
+    domain_results = self.send_query(domains_query, True) 
+    for pk1, batch_uid, name in domain_results:
+      domain = str(batch_uid)
+      domains[domain] = dict()
+      domains[domain]["primary_key"] = pk1 
+      domains[domain]["name"] = name 
+      domains[domain]["courses"] = self.domain_collection_queries(pk1, "domain_course_coll")
+      domains[domain]["organizations"] = self.domain_collection_queries(pk1, "domain_organization_coll")
+      domains[domain]["users"] = self.domain_collection_queries(pk1, "domain_user_coll")
+      domains[domain]["enrollments"] = self.domain_enrollments(pk1)
+ 
+    return domains
+
+  def domain_enrollments(self, pk1):
+    """Count all enrollments for a specified domain.
+
+    Select category for domain, all courses in that category, 
+    and all course_users for each course."""
+    enrollment_tally = 0
+    category_query = """select gateway_categories_pk1 from domain_course_categories where domain_pk1 = """ + str(pk1)
+    category_results = self.send_query(category_query, True)
+    for gateway_categories_pk1 in category_results:
+      course_pks = dict()
+      course_pk_query = """select crsmain_pk1 from gateway_course_categories where gatewaycat_pk1 = """ + str(gateway_categories)
+      course_pk_results = self.send_query(course_pk_query, True)
+      for crsmain_pk1 in course_pk_results:
+	enrolled_query = """select count(*) from course_users where crsmain_pk1=""" + str(crsmain_pk1)
+	enrolled_results = self.send_query(enrolled_query)
+	enrollment_tally += enrolled_results
+
+    return enrollment_tally
+
+  def domain_collection_queries(self, domain, type):
+    """Return counts of courses or orgs."""
+
+    query = """select count(*) from """ + str(type) + """ where domain_pk1=""" + str(domain)
+    results = self.send_query(query)
+    return results
+    
   
   def build_active_queries(self, query_method, current_term=None):
     """Build a query string by calling a query method and a term.
@@ -212,12 +259,15 @@ class ReportRunner:
 
     return cx_Oracle.connect(oracle_user, oracle_pass, oracle_dsn_tns)
 
-  def send_query(self, query):
+  def send_query(self, query, raw=False):
     """Send query oracle, and return result."""
     connection = self.oracle_connection()
     cursor = connection.cursor()
     cursor.execute(query)
-    result = cursor.fetchall()[0][0]
+    if not raw:
+        result = cursor.fetchall()[0][0]
+    else:
+        result = cursor.fetchall()
     cursor.close()
     connection.close
     return result
