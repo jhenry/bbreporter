@@ -179,16 +179,19 @@ class ReportRunner:
     Select category for domain, all courses in that category, 
     and all course_users for each course."""
     enrollment_tally = 0
+    category_pks = dict()
+    course_pks = dict()
     category_query = """select gateway_categories_pk1 from domain_course_categories where domain_pk1 = """ + str(pk1)
-    category_results = self.send_query(category_query, True)
-    for gateway_categories_pk1 in category_results:
-      course_pks = dict()
-      course_pk_query = """select crsmain_pk1 from gateway_course_categories where gatewaycat_pk1 = """ + str(gateway_categories)
-      course_pk_results = self.send_query(course_pk_query, True)
-      for crsmain_pk1 in course_pk_results:
-	enrolled_query = """select count(*) from course_users where crsmain_pk1=""" + str(crsmain_pk1)
-	enrolled_results = self.send_query(enrolled_query)
-	enrollment_tally += enrolled_results
+    gateway_categories = self.send_query(category_query, True)
+    category_pks = self.flatten_list(gateway_categories)
+    for category in category_pks:
+        course_pk_query = """select crsmain_pk1 from gateway_course_categories where gatewaycat_pk1 = """ + str(category)
+        course_pk_results = self.send_query(course_pk_query, True)
+        course_pks = self.flatten_list(course_pk_results)
+        for crsmain_pk1 in course_pks:
+            enrolled_query = """select count(*) from course_users where crsmain_pk1=""" + str(crsmain_pk1)
+            enrolled_results = self.send_query(enrolled_query)
+            enrollment_tally += enrolled_results
 
     return enrollment_tally
 
@@ -199,7 +202,9 @@ class ReportRunner:
     results = self.send_query(query)
     return results
     
-  
+  def flatten_list(self, list):
+    return [item for sublist in list for item in sublist] 
+
   def build_active_queries(self, query_method, current_term=None):
     """Build a query string by calling a query method and a term.
 
