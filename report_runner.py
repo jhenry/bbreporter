@@ -334,15 +334,15 @@ class ReportRunner:
 
     term_year = log['term'][:4] 
     term_month = log['term'][4:6]
-    td = datetime(year=int(term_year), month=int(term_month), day=1)
+    # td = datetime(year=int(term_year), month=int(term_month), day=1)
 
-    log['term_date'] = td.strftime('%Y-%m-%d %H:%M:%S')
+    # log['term_date'] = td.strftime('%Y-%m-%d %H:%M:%S')
     log['grouping'] = 'by-term,by-label'
     log['report'] = report
 
-    FORMAT = '%(asctime)s datatype=%(grouping)s term_code=%(term)s term_datestring=%(term_date)s label=%(label)s report_count=%(report)s'
+    FORMAT = '%(asctime)s datatype=%(grouping)s term_code=%(term)s label=%(label)s report_count=%(report)s'
     logging.basicConfig(format=FORMAT, level=logging.INFO)
-    logging.info("here", extra=log)
+    logging.info(".", extra=log)
 
   def send_to_statsd(self, report_label, report):
     """Send data to aggregator via statsd."""
