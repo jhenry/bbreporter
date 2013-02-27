@@ -302,7 +302,7 @@ class ReportRunner:
     return reports
     
     
-  def send_report(self, report_label, report, delivery = "mysql", stamp = None):
+  def send_report(self, report_label, report, delivery = "log", stamp = None):
     """Send report data to specified aggregator."""
     if delivery is "statsd":
       return "Statsd: " + report_label + " " +  str(report)
@@ -312,8 +312,10 @@ class ReportRunner:
       report_string = report_label + " " + str(report) + " " + str(stamp) + "\n"
       self.send_to_carbon(report_string)
       return "Carbon: " + report_string
-    else:
+    elif delivery is "mysql":
       self.send_to_mysql(report_label, report)
+    else:
+      self.send_to_logger(report_label, report)
 
   def send_to_mysql(self, report_label, report):
 	mysql_connection = self.mysql_connection()
@@ -333,9 +335,11 @@ class ReportRunner:
     term_year = log['term'][:4] 
     term_month = log['term'][4:6]
     td = datetime(year=int(term_year), month=int(term_month), day=1)
+
     log['term_date'] = td.strftime('%Y-%m-%d %H:%M:%S')
     log['grouping'] = 'by-term,by-label'
     log['report'] = report
+
     FORMAT = '%(asctime)s datatype=%(grouping)s term_code=%(term)s term_datestring=%(term_date)s label=%(label)s report_count=%(report)s'
     logging.basicConfig(format=FORMAT, level=logging.INFO)
     logging.info("here", extra=log)
