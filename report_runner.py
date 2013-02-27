@@ -326,23 +326,22 @@ class ReportRunner:
 	mysql_connection.close()
 
   def send_to_logger(self, report_label, report):
-    import logging
+    from time import gmtime, strftime
     labels = report_label.split('.')
     log = dict()
+    log['asctime'] = time.strftime('%Y-%m-%d %H:%M:%S', gmtime())
     log['term'] = labels[1]
     log['label'] = labels[0]
 
     term_year = log['term'][:4] 
     term_month = log['term'][4:6]
-    # td = datetime(year=int(term_year), month=int(term_month), day=1)
 
-    # log['term_date'] = td.strftime('%Y-%m-%d %H:%M:%S')
-    log['grouping'] = 'by-term,by-label'
+    log['grouping'] = 'by-label'
     log['report'] = report
 
-    FORMAT = '%(asctime)s datatype=%(grouping)s term_code=%(term)s label=%(label)s report_count=%(report)s'
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
-    logging.info(".", extra=log)
+    FORMAT = '{asctime} datatype={grouping} term_code={term} label={label} report_count={report}'
+    formatted_log = FORMAT.format(**log)
+    return formatted_log
 
   def send_to_statsd(self, report_label, report):
     """Send data to aggregator via statsd."""
