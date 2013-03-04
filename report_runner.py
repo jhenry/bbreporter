@@ -341,13 +341,13 @@ class ReportRunner:
     else:
       log['asctime'] = stamp
     log['term'] = labels[1]
-    log['label'] = labels[0]
+    log['label'] = labels[0].replace("active_", "")
 
 
-    log['grouping'] = 'by-label'
+    log['grouping'] = labels[0] 
     log['report'] = report
 
-    FORMAT = '{asctime} datatype={grouping} term_code={term} label={label} count={report}'
+    FORMAT = '{asctime} datatype={grouping} term_code={term} {label}={report}'
     formatted_log = FORMAT.format(**log)
 
     return formatted_log
