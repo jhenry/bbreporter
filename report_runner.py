@@ -322,7 +322,7 @@ class ReportRunner:
     elif delivery is "mysql":
       self.send_to_mysql(report_label, report)
     else:
-      self.send_to_logger(report_label, report)
+      self.send_to_splunk(report_label, report)
 
   def send_to_mysql(self, report_label, report):
 	mysql_connection = self.mysql_connection()
