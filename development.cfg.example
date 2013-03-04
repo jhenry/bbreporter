@@ -18,4 +18,7 @@ host =
 user =
 password =
 
+[splunk]
+host = 
+port = 
 

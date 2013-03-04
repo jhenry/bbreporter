@@ -1,5 +1,5 @@
 import sys
-from socket import socket
+import socket
 import re
 from datetime import datetime
 from ConfigParser import SafeConfigParser
@@ -252,6 +252,13 @@ class ReportRunner:
 
     return mysql_connection
 
+  def socket_connection(self):
+    socket_host = self.configs.get('splunk', 'host')
+    socket_port = int(self.configs.get('splunk', 'port'))
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((socket_host, socket_port))
+    return s
+
   def oracle_connection(self):
     """Return an oracle connection handle."""
     import cx_Oracle
@@ -325,23 +332,49 @@ class ReportRunner:
 	mysql_cursor.close()
 	mysql_connection.close()
 
-  def send_to_logger(self, report_label, report):
-    from time import gmtime, strftime
+  def format_logs(self, report_label, report, stamp=0):
+    from time import localtime, gmtime, strftime
     labels = report_label.split('.')
     log = dict()
-    log['asctime'] = time.strftime('%Y-%m-%d %H:%M:%S', gmtime())
+    if stamp == 0:
+      log['asctime'] = time.strftime('%Y-%m-%d %H:%M:%S', gmtime())
+    else:
+      log['asctime'] = stamp
     log['term'] = labels[1]
     log['label'] = labels[0]
 
-    term_year = log['term'][:4] 
-    term_month = log['term'][4:6]
 
     log['grouping'] = 'by-label'
     log['report'] = report
 
-    FORMAT = '{asctime} datatype={grouping} term_code={term} label={label} report_count={report}'
+    FORMAT = '{asctime} datatype={grouping} term_code={term} label={label} count={report}'
     formatted_log = FORMAT.format(**log)
+
     return formatted_log
+
+  def json_to_log(self, json_url):
+    import json
+    import urllib2
+    
+    data = urllib2.urlopen(json_url)
+    reports = json.load(data)
+    for label, report in reports.items():
+      labels = label.split('.')
+      term_year = labels[1][:4] 
+      term_month = labels[1][4:6]
+      td = datetime(year=int(term_year), month=int(term_month), day=1)
+      return self.format_logs(label,report[0]['report'],td) 
+  
+  def send_to_splunk(self, report_label, report):
+    log = self.format_logs(report_label, report)
+    self.netcat(log)
+
+  def netcat(self, content):
+    """Basic netcat clone."""
+    s = self.socket_connection()
+    s.sendall(content)
+    s.shutdown(socket.SHUT_WR)
+    s.close()  
 
   def send_to_statsd(self, report_label, report):
     """Send data to aggregator via statsd."""
