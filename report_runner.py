@@ -341,7 +341,8 @@ class ReportRunner:
     else:
       log['asctime'] = stamp
     log['term'] = labels[1]
-    log['label'] = labels[0].replace("active_", "")
+    match =  re.search("[a-z]*$", labels[0])
+    log['label'] = match.group(0) 
 
 
     log['grouping'] = labels[0] 
@@ -363,7 +364,7 @@ class ReportRunner:
       term_year = labels[1][:4] 
       term_month = labels[1][4:6]
       td = datetime(year=int(term_year), month=int(term_month), day=1)
-      return self.format_logs(label,report[0]['report'],td) 
+      print self.format_logs(label,report[0]['report'],td) 
   
   def send_to_splunk(self, report_label, report):
     log = self.format_logs(report_label, report)
