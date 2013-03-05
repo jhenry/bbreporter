@@ -341,14 +341,11 @@ class ReportRunner:
     else:
       log['asctime'] = stamp
     log['term'] = labels[1]
-    match =  re.search("[a-z]*$", labels[0])
-    log['label'] = match.group(0) 
 
-
-    log['grouping'] = labels[0] 
+    log['label'] = labels[0] 
     log['report'] = report
 
-    FORMAT = '{asctime} datatype={grouping} term_code={term} {label}={report}'
+    FORMAT = '{asctime} term_code={term} {label}={report}'
     formatted_log = FORMAT.format(**log)
 
     return formatted_log
