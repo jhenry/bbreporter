@@ -284,70 +284,41 @@ class ReportRunner:
     connection.close
     return result
 
+  def term_coded_report_label(self, report_prefix, current_term=None):
+    if current_term is None:
+      current_term = self.get_term()
+
+    prefixed_label = str(report_prefix) + "." + str(current_term)
+    return prefixed_label
+
   def run_report(self, query_method, current_term=None, report_prefix=None):
     """Build, send, and report a single query"""
     if current_term is None:
-	current_term = self.get_term()
-    if report_prefix is None:
-	report_prefix = query_method
-    prefixed_label = str(report_prefix) + "." + current_term
+      current_term = self.get_term()
+
     query = getattr(self, query_method) (current_term)
-    report = self.send_query(query)
-    self.send_report(prefixed_label, report)
-    return report
-
-
-  def run_reports(self, query_method, report_prefix=None):
-    """Build, send, and report a set of term queries"""
-    if report_prefix is None:
-	report_prefix = query_method
-
-    reports = self.run_active_queries(query_method) 
-    for label, report in reports.items():
-      prefixed_label = str(report_prefix) + "." + label
-      self.send_report(prefixed_label, report)
+    reports = dict()
+    reports["term_code"] = current_term
+    result = self.send_query(query)
+    if type(result) is dict:
+      reports << result
+      reports["datatype"] = query_method
+    else: 
+      reports[query_method] = result 
+    self.send_to_splunk(reports)
     return reports
-    
-    
-  def send_report(self, report_label, report, delivery = "log", stamp = None):
-    """Send report data to specified aggregator."""
-    if delivery is "statsd":
-      return "Statsd: " + report_label + " " +  str(report)
-    elif delivery is "carbon":
-      if stamp is None:
-        stamp = int (time.time())
-      report_string = report_label + " " + str(report) + " " + str(stamp) + "\n"
-      self.send_to_carbon(report_string)
-      return "Carbon: " + report_string
-    elif delivery is "mysql":
-      self.send_to_mysql(report_label, report)
-    else:
-      self.send_to_splunk(report_label, report)
 
-  def send_to_mysql(self, report_label, report):
-	mysql_connection = self.mysql_connection()
-	mysql_cursor = mysql_connection.cursor()
-	mysql_cursor.execute("insert into reports (label, report) values('" + str(report_label) + "','" + str(report) + "')")
-	mysql_connection.commit()
-	mysql_cursor.close()
-	mysql_connection.close()
-
-  def format_logs(self, report_label, report, stamp=0):
+  def format_logs(self, report):
     from time import localtime, gmtime, strftime
-    labels = report_label.split('.')
-    log = dict()
-    if stamp == 0:
-      log['asctime'] = time.strftime('%Y-%m-%d %H:%M:%S', gmtime())
-    else:
-      log['asctime'] = stamp
-    log['term'] = labels[1]
-
-    log['label'] = labels[0] 
-    log['report'] = report
-
-    FORMAT = '{asctime} term_code={term} {label}={report}'
-    formatted_log = FORMAT.format(**log)
-
+    if not "stamp" in report:
+      report['stamp'] = time.strftime('%Y-%m-%d %H:%M:%S', gmtime())
+    
+    formatted_log = str(report['stamp']) + " "
+    for key,value in report.items():
+      if key is not "stamp":
+        formatted_log += key + "=" + str(value) + " "
+    print formatted_log
+  
     return formatted_log
 
   def json_to_log(self, json_url):

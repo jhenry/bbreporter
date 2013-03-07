@@ -68,36 +68,24 @@ class TestReportRunner(unittest.TestCase):
       self.assertTrue(reports["201201"] > 0)
     finally:
       ReportRunner.send_query = send_query
-  
-  def test_report_active_courses_to_carbon(self):
-    import time
-    now = int(time.time())
-    def mock_send_to_carbon(self, report):
-      return "courses.active.201201 1001"
-    send_to_carbon = ReportRunner.send_to_carbon
-    try:
-      ReportRunner.send_to_carbon = mock_send_to_carbon
-      report_runner = ReportRunner()
-      reports = report_runner.send_report("courses.active.201201", "1001",
-      "carbon", now)
-      self.assertIn("courses.active.201201 1001 " + str(now), reports)
-    finally:
-      ReportRunner.send_to_carbon = send_to_carbon        
 
-  def test_report_active_courses_to_statsd(self):
-    def mock_send_to_statsd(self, report):
-      return "courses.active.201201 1001"
-    send_to_statsd = ReportRunner.send_to_statsd
-    try:
-      ReportRunner.send_to_statsd = mock_send_to_statsd
-      report_runner = ReportRunner()
-      reports = report_runner.send_report("courses.active.201201", "1001",
-      "statsd")
-      self.assertIn("courses.active.201201 1001", reports)
-    finally:
-      ReportRunner.send_to_statsd = send_to_statsd        
+  def test_term_coded_report_label(self):
+    report_runner = ReportRunner()
+    label = "active_courses"
+    term_code = "201101"
+    joined_label = report_runner.term_coded_report_label(label, term_code)
+    print joined_label
+    self.assertTrue("active_courses.201101" == joined_label)
 
-
+  def test_format_logs(self):
+    report_runner = ReportRunner()
+    report = dict()
+    report["stamp"] = "2009-09-01 00:00:00"
+    report["active_courses"] = 1000
+    report["term_code"] = 201101
+    log = report_runner.format_logs(report)
+    self.assertIn("2009-09-01 00:00:00 term_code=201101 active_courses=1000", log)
+    
    
 if __name__ == "__main__":
     unittest.main()
