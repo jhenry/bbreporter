@@ -165,7 +165,7 @@ class ReportRunner:
       domain = str(batch_uid)
       domains[domain] = dict()
       domains[domain]["primary_key"] = pk1 
-      domains[domain]["name"] = name 
+      domains[domain]["name"] = str(name)
       domains[domain]["courses"] = self.domain_collection_queries(pk1, "domain_course_coll")
       domains[domain]["organizations"] = self.domain_collection_queries(pk1, "domain_organization_coll")
       domains[domain]["users"] = self.domain_collection_queries(pk1, "domain_user_coll")
@@ -189,7 +189,7 @@ class ReportRunner:
         course_pk_results = self.send_query(course_pk_query, True)
         course_pks = self.flatten_list(course_pk_results)
         for crsmain_pk1 in course_pks:
-            enrolled_query = """select count(*) from course_users where crsmain_pk1=""" + str(crsmain_pk1)
+            enrolled_query = """select count(*) from course_users,users where course_users.users_pk1=users.pk1 and users.row_status=0 and crsmain_pk1=""" + str(crsmain_pk1)
             enrolled_results = self.send_query(enrolled_query)
             enrollment_tally += enrolled_results
 
