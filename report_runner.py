@@ -4,15 +4,27 @@ import re
 from datetime import datetime
 from ConfigParser import SafeConfigParser
 import time
+import logging
 from statsd_client import Statsd
 
 class ReportRunner:
 
-  def __init__(self):
+  def __init__(self, loglevel=None):
       parser = SafeConfigParser()
       parser.readfp(open('environment.cfg'))
       parser.readfp(open(parser.get('DEFAULT','environment')))
       self.configs = parser
+      self.setup_logger(loglevel)
+
+  def setup_logger(self, loglevel):
+      if loglevel is None:
+        loglevel = self.configs.get('logging', 'level')
+      
+      numeric_level = getattr(logging, loglevel.upper(), None)
+      if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+      
+      logging.basicConfig(level=numeric_level)
 
   def get_term(self, year = None, month = None):
     """Generate a 6-digit term code.
@@ -159,13 +171,13 @@ class ReportRunner:
     Select all domains, then select courses, orgs, and user 
     collections for each domain.""" 
     domains = dict()
-    domains_query = """select pk1, batch_uid, name from domain""" 
+    domains_query = """select pk1, batch_uid from domain""" 
     domain_results = self.send_query(domains_query, True) 
     for pk1, batch_uid, name in domain_results:
       domain = str(batch_uid)
       domains[domain] = dict()
-      domains[domain]["primary_key"] = pk1 
-      domains[domain]["name"] = str(name)
+      domains[domain]["datatype"] = "domain_collections"
+      domains[domain]["domain_id"] = domain 
       domains[domain]["courses"] = self.domain_collection_queries(pk1, "domain_course_coll")
       domains[domain]["organizations"] = self.domain_collection_queries(pk1, "domain_organization_coll")
       domains[domain]["users"] = self.domain_collection_queries(pk1, "domain_user_coll")
@@ -205,6 +217,11 @@ class ReportRunner:
   def flatten_list(self, list):
     return [item for sublist in list for item in sublist] 
 
+  def report_domains(self):
+    reports = self.domain_collections()
+    for report in reports.items():
+      self.send_to_splunk(report[1])
+        
   def build_active_queries(self, query_method, current_term=None):
     """Build a query string by calling a query method and a term.
 
@@ -317,7 +334,6 @@ class ReportRunner:
     for key,value in report.items():
       if key is not "stamp":
         formatted_log += key + "=" + str(value) + " "
-    print formatted_log
   
     return formatted_log
 
@@ -334,8 +350,9 @@ class ReportRunner:
       td = datetime(year=int(term_year), month=int(term_month), day=1)
       print self.format_logs(label,report[0]['report'],td) 
   
-  def send_to_splunk(self, report_label, report):
-    log = self.format_logs(report_label, report)
+  def send_to_splunk(self, report):
+    log = self.format_logs(report)
+    logging.info(log)
     self.netcat(log)
 
   def netcat(self, content):

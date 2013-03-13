@@ -2,6 +2,7 @@ from report_runner import ReportRunner
 import unittest
 import py
 import pytest_skipping
+from mock import MagicMock
 import re
 import datetime
 
@@ -86,6 +87,26 @@ class TestReportRunner(unittest.TestCase):
     log = report_runner.format_logs(report)
     self.assertIn("2009-09-01 00:00:00 term_code=201101 active_courses=1000", log)
     
+  def test_format_logs_complex(self):
+    # report_runner = ReportRunner()
+    self.pending()
+
+  def test_report_domains(self):
+    domain_objects = {'CNHS': {'stamp': '2012-09-01 00:00:00', 'organizations': 3, 'users': 0, 'name': 'College of Nursing and Health Sciences', 'courses': 0, 'enrollments': 0, 'primary_key': 264}, 'ASP': {'organizations': 2, 'users': 0, 'name': 'Academic Support Programs', 'courses': 0, 'enrollments': 0, 'primary_key': 164}, 'EXTENSION': {'organizations': 0, 'users': 1713, 'name': 'Extension', 'courses': 21, 'enrollments': 2948, 'primary_key': 44}}
+    domain_collections = ReportRunner.domain_collections
+
+    report_runner = ReportRunner()
+    report_runner.domain_collections = MagicMock(return_value = domain_objects)
+    report_runner.netcat = MagicMock()
+
+    report_runner.report_domains()    
+
+    called_arguments = report_runner.netcat.call_args_list
+    calls = [item for sublist in called_arguments for item in sublist[0]]
+
+    # check to see if more than one set of data is sent
+    self.assertTrue(any('primary_key=264' in i for i in calls))
+    self.assertTrue(any('primary_key=164' in i for i in calls))
    
 if __name__ == "__main__":
     unittest.main()
