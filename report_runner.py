@@ -173,7 +173,7 @@ class ReportRunner:
     domains = dict()
     domains_query = """select pk1, batch_uid from domain""" 
     domain_results = self.send_query(domains_query, True) 
-    for pk1, batch_uid, name in domain_results:
+    for pk1, batch_uid in domain_results:
       domain = str(batch_uid)
       domains[domain] = dict()
       domains[domain]["datatype"] = "domain_collections"
